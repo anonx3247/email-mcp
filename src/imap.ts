@@ -1,0 +1,362 @@
+import { ImapFlow } from "imapflow";
+import type {
+  ImapFlowOptions,
+  ListResponse,
+  FetchMessageObject,
+  MessageEnvelopeObject,
+  MessageAddressObject,
+  MessageStructureObject,
+  SearchObject,
+} from "imapflow";
+
+type SecurityMode = "ssl" | "starttls" | "none";
+
+function getImapConfig(): ImapFlowOptions {
+  const host = process.env["IMAP_HOST"];
+  if (!host) throw new Error("IMAP_HOST is required");
+
+  const security: SecurityMode =
+    (process.env["IMAP_SECURITY"] as SecurityMode | undefined) ?? "ssl";
+  const defaultPort = security === "ssl" ? 993 : 143;
+  const port = parseInt(process.env["IMAP_PORT"] ?? String(defaultPort), 10);
+  const sslVerify = process.env["SSL_VERIFY"] !== "false";
+
+  const username =
+    process.env["EMAIL_USERNAME"] ?? process.env["EMAIL_ADDRESS"] ?? "";
+  const password = process.env["EMAIL_PASSWORD"] ?? "";
+
+  const config: ImapFlowOptions = {
+    host,
+    port,
+    secure: security === "ssl",
+    logger: false,
+    tls: {
+      rejectUnauthorized: sslVerify,
+    },
+  };
+
+  if (security === "starttls") {
+    config.secure = false;
+  }
+
+  if (password || security !== "none") {
+    config.auth = { user: username, pass: password };
+  }
+
+  return config;
+}
+
+function createClient(): ImapFlow {
+  return new ImapFlow(getImapConfig());
+}
+
+function formatAddress(
+  addr: MessageAddressObject | undefined
+): string | undefined {
+  if (!addr) return undefined;
+  if (addr.name) return `${addr.name} <${addr.address}>`;
+  return addr.address;
+}
+
+function formatAddresses(
+  addrs: MessageAddressObject[] | undefined
+): string[] | undefined {
+  if (!addrs?.length) return undefined;
+  return addrs.map((a) => formatAddress(a)).filter(Boolean) as string[];
+}
+
+interface MailboxInfo {
+  name: string;
+  path: string;
+  delimiter: string;
+  flags: string[];
+  specialUse?: string;
+}
+
+export async function listMailboxes(): Promise<MailboxInfo[]> {
+  const client = createClient();
+  try {
+    await client.connect();
+    const list: ListResponse[] = await client.list();
+    return list.map((m) => ({
+      name: m.name,
+      path: m.path,
+      delimiter: m.delimiter,
+      flags: Array.from(m.flags),
+      specialUse: m.specialUse,
+    }));
+  } finally {
+    await client.logout().catch(() => {});
+  }
+}
+
+interface EmailSummary {
+  uid: number;
+  date: string | undefined;
+  from: string[] | undefined;
+  to: string[] | undefined;
+  subject: string | undefined;
+  flags: string[];
+}
+
+function messageToSummary(msg: FetchMessageObject): EmailSummary {
+  return {
+    uid: msg.uid,
+    date: msg.envelope?.date?.toISOString?.() ?? String(msg.envelope?.date),
+    from: formatAddresses(msg.envelope?.from),
+    to: formatAddresses(msg.envelope?.to),
+    subject: msg.envelope?.subject,
+    flags: msg.flags ? Array.from(msg.flags) : [],
+  };
+}
+
+interface ListEmailsResult {
+  total: number;
+  page: number;
+  pageSize: number;
+  emails: EmailSummary[];
+}
+
+export async function listEmails(
+  mailbox: string = "INBOX",
+  page: number = 1,
+  pageSize: number = 20
+): Promise<ListEmailsResult> {
+  const client = createClient();
+  try {
+    await client.connect();
+    const mb = await client.mailboxOpen(mailbox, { readOnly: true });
+    const total = mb.exists;
+
+    if (total === 0) {
+      return { total, page, pageSize, emails: [] };
+    }
+
+    // newest first: calculate sequence range
+    const end = total - (page - 1) * pageSize;
+    const start = Math.max(1, end - pageSize + 1);
+
+    if (end < 1) {
+      return { total, page, pageSize, emails: [] };
+    }
+
+    const messages = await client.fetchAll(`${start}:${end}`, {
+      uid: true,
+      flags: true,
+      envelope: true,
+    });
+
+    // Sort newest first (by sequence/uid descending)
+    messages.sort((a, b) => b.uid - a.uid);
+
+    return {
+      total,
+      page,
+      pageSize,
+      emails: messages.map(messageToSummary),
+    };
+  } finally {
+    await client.logout().catch(() => {});
+  }
+}
+
+interface AttachmentInfo {
+  filename: string | undefined;
+  size: number | undefined;
+  contentType: string;
+}
+
+function collectAttachments(
+  structure: MessageStructureObject | undefined
+): AttachmentInfo[] {
+  if (!structure) return [];
+  const attachments: AttachmentInfo[] = [];
+
+  function walk(node: MessageStructureObject): void {
+    if (node.disposition === "attachment" || node.disposition === "inline") {
+      if (
+        node.disposition === "attachment" ||
+        (node.dispositionParameters?.["filename"] ?? node.parameters?.["name"])
+      ) {
+        attachments.push({
+          filename:
+            node.dispositionParameters?.["filename"] ??
+            node.parameters?.["name"],
+          size: node.size,
+          contentType: node.type,
+        });
+      }
+    }
+    if (node.childNodes) {
+      for (const child of node.childNodes) {
+        walk(child);
+      }
+    }
+  }
+
+  walk(structure);
+  return attachments;
+}
+
+function findPart(
+  structure: MessageStructureObject | undefined,
+  type: string
+): string | undefined {
+  if (!structure) return undefined;
+
+  function walk(node: MessageStructureObject): string | undefined {
+    if (node.type === type && node.part) {
+      return node.part;
+    }
+    if (node.childNodes) {
+      for (const child of node.childNodes) {
+        const found = walk(child);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  }
+
+  return walk(structure);
+}
+
+interface FetchEmailResult {
+  uid: number;
+  date: string | undefined;
+  from: string[] | undefined;
+  to: string[] | undefined;
+  cc: string[] | undefined;
+  subject: string | undefined;
+  flags: string[];
+  textBody: string | undefined;
+  htmlBody: string | undefined;
+  attachments: AttachmentInfo[];
+}
+
+export async function fetchEmail(
+  mailbox: string = "INBOX",
+  uid: number
+): Promise<FetchEmailResult> {
+  const client = createClient();
+  try {
+    await client.connect();
+    await client.mailboxOpen(mailbox, { readOnly: true });
+
+    const msg = await client.fetchOne(String(uid), {
+      uid: true,
+      flags: true,
+      envelope: true,
+      bodyStructure: true,
+    }, { uid: true });
+
+    if (!msg) {
+      throw new Error(`Message with UID ${uid} not found`);
+    }
+
+    const envelope: MessageEnvelopeObject | undefined = msg.envelope;
+    const attachments = collectAttachments(msg.bodyStructure);
+
+    // Download text and html parts
+    let textBody: string | undefined;
+    let htmlBody: string | undefined;
+
+    const textPart = findPart(msg.bodyStructure, "text/plain");
+    const htmlPart = findPart(msg.bodyStructure, "text/html");
+
+    if (textPart) {
+      const dl = await client.download(String(uid), textPart, { uid: true });
+      const chunks: Buffer[] = [];
+      for await (const chunk of dl.content) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      textBody = Buffer.concat(chunks).toString("utf-8");
+    }
+
+    if (htmlPart) {
+      const dl = await client.download(String(uid), htmlPart, { uid: true });
+      const chunks: Buffer[] = [];
+      for await (const chunk of dl.content) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      htmlBody = Buffer.concat(chunks).toString("utf-8");
+    }
+
+    // If no parts found but it's a simple message, download full source
+    if (!textPart && !htmlPart && !msg.bodyStructure?.childNodes) {
+      const dl = await client.download(String(uid), undefined, { uid: true });
+      const chunks: Buffer[] = [];
+      for await (const chunk of dl.content) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      const fullSource = Buffer.concat(chunks).toString("utf-8");
+      if (msg.bodyStructure?.type === "text/html") {
+        htmlBody = fullSource;
+      } else {
+        textBody = fullSource;
+      }
+    }
+
+    return {
+      uid: msg.uid,
+      date: envelope?.date?.toISOString?.() ?? String(envelope?.date),
+      from: formatAddresses(envelope?.from),
+      to: formatAddresses(envelope?.to),
+      cc: formatAddresses(envelope?.cc),
+      subject: envelope?.subject,
+      flags: msg.flags ? Array.from(msg.flags) : [],
+      textBody,
+      htmlBody,
+      attachments,
+    };
+  } finally {
+    await client.logout().catch(() => {});
+  }
+}
+
+interface SearchCriteria {
+  from?: string;
+  to?: string;
+  subject?: string;
+  since?: string;
+  before?: string;
+  body?: string;
+  seen?: boolean;
+}
+
+export async function searchEmails(
+  mailbox: string = "INBOX",
+  criteria: SearchCriteria,
+  limit: number = 50
+): Promise<EmailSummary[]> {
+  const client = createClient();
+  try {
+    await client.connect();
+    await client.mailboxOpen(mailbox, { readOnly: true });
+
+    const query: SearchObject = {};
+    if (criteria.from) query.from = criteria.from;
+    if (criteria.to) query.to = criteria.to;
+    if (criteria.subject) query.subject = criteria.subject;
+    if (criteria.since) query.since = criteria.since;
+    if (criteria.before) query.before = criteria.before;
+    if (criteria.body) query.body = criteria.body;
+    if (criteria.seen !== undefined) query.seen = criteria.seen;
+
+    const uids = await client.search(query, { uid: true });
+    if (!uids || uids.length === 0) return [];
+
+    // Take last N UIDs (most recent)
+    const selectedUids = uids.slice(-limit);
+    const messages = await client.fetchAll(selectedUids.join(","), {
+      uid: true,
+      flags: true,
+      envelope: true,
+    }, { uid: true });
+
+    messages.sort((a, b) => b.uid - a.uid);
+
+    return messages.map(messageToSummary);
+  } finally {
+    await client.logout().catch(() => {});
+  }
+}
