@@ -1,6 +1,6 @@
 {
-  "name": "email-mcp",
-  "version": "0.1.0",
+  "name": "@anonx3247/email-mcp",
+  "version": "0.1.1",
   "description": "Email MCP server with IMAP and SMTP support",
   "type": "module",
   "main": "dist/index.js",

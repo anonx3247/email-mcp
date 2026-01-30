@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { listMailboxes, listEmails, fetchEmail, searchEmails } from "./imap.js";
+import { listMailboxes, listEmails, fetchEmail, searchEmails, moveEmail, deleteEmail } from "./imap.js";
 import { sendEmail } from "./smtp.js";
 
 // Validate required env vars
@@ -178,6 +178,47 @@ server.tool(
         replyTo,
         isHtml,
       });
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { isError: true, content: [{ type: "text", text: msg }] };
+    }
+  }
+);
+
+server.tool(
+  "move_email",
+  "Move an email to another mailbox/folder (e.g. archive, junk, sent)",
+  {
+    mailbox: z.string().default("INBOX").describe("Source mailbox path"),
+    uid: z.number().int().describe("Email UID to move"),
+    destination: z.string().describe("Destination mailbox path (e.g. Archive, Junk, Trash)"),
+  },
+  async ({ mailbox, uid, destination }) => {
+    try {
+      const result = await moveEmail(mailbox, uid, destination);
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { isError: true, content: [{ type: "text", text: msg }] };
+    }
+  }
+);
+
+server.tool(
+  "delete_email",
+  "Permanently delete an email (sets \\Deleted flag and expunges)",
+  {
+    mailbox: z.string().default("INBOX").describe("Mailbox path"),
+    uid: z.number().int().describe("Email UID to delete"),
+  },
+  async ({ mailbox, uid }) => {
+    try {
+      const result = await deleteEmail(mailbox, uid);
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };

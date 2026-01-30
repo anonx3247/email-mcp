@@ -360,3 +360,62 @@ export async function searchEmails(
     await client.logout().catch(() => {});
   }
 }
+
+interface MoveEmailResult {
+  uid: number;
+  from: string;
+  to: string;
+  newUid: number | undefined;
+}
+
+export async function moveEmail(
+  mailbox: string,
+  uid: number,
+  destination: string
+): Promise<MoveEmailResult> {
+  const client = createClient();
+  try {
+    await client.connect();
+    await client.mailboxOpen(mailbox);
+
+    const result = await client.messageMove(String(uid), destination, {
+      uid: true,
+    });
+
+    if (!result) {
+      throw new Error(`Failed to move message UID ${uid} to ${destination}`);
+    }
+
+    // uidMap maps source UID -> destination UID
+    let newUid: number | undefined;
+    if (result.uidMap) {
+      newUid = result.uidMap.get(uid);
+    }
+
+    return {
+      uid,
+      from: mailbox,
+      to: destination,
+      newUid,
+    };
+  } finally {
+    await client.logout().catch(() => {});
+  }
+}
+
+export async function deleteEmail(
+  mailbox: string,
+  uid: number
+): Promise<{ uid: number; mailbox: string; deleted: boolean }> {
+  const client = createClient();
+  try {
+    await client.connect();
+    await client.mailboxOpen(mailbox);
+
+    const result = await client.messageDelete(String(uid), { uid: true });
+
+    return { uid, mailbox, deleted: result };
+  } finally {
+    await client.logout().catch(() => {});
+  }
+}
