@@ -1,0 +1,134 @@
+{
+  "manifest_version": "0.3",
+  "name": "email-mcp",
+  "display_name": "Email",
+  "version": "0.1.1",
+  "description": "Read, search, send, and manage emails via IMAP and SMTP. Works with any email provider — Gmail, Outlook, Fastmail, and more.",
+  "long_description": "A general-purpose email integration for Claude. Connect any IMAP/SMTP-compatible email account and give Claude the ability to check your inbox, search messages, compose and send emails, and organize your mailbox. Supports SSL, STARTTLS, and unencrypted connections with configurable ports and credentials.",
+  "author": {
+    "name": "anonx3247",
+    "url": "https://github.com/anonx3247"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anonx3247/email-mcp"
+  },
+  "keywords": ["email", "imap", "smtp", "mail", "inbox"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "EMAIL_ADDRESS": "${user_config.email_address}",
+        "EMAIL_PASSWORD": "${user_config.email_password}",
+        "IMAP_HOST": "${user_config.imap_host}",
+        "SMTP_HOST": "${user_config.smtp_host}",
+        "IMAP_SECURITY": "${user_config.imap_security}",
+        "SMTP_SECURITY": "${user_config.smtp_security}",
+        "IMAP_PORT": "${user_config.imap_port}",
+        "SMTP_PORT": "${user_config.smtp_port}",
+        "EMAIL_USERNAME": "${user_config.email_username}",
+        "SSL_VERIFY": "${user_config.ssl_verify}"
+      }
+    }
+  },
+  "user_config": {
+    "email_address": {
+      "type": "string",
+      "title": "Email Address",
+      "description": "Your email address (also used as the From address and default username)",
+      "required": true
+    },
+    "email_password": {
+      "type": "string",
+      "title": "Password / App Password",
+      "description": "Your email password or app-specific password. For Gmail, use an App Password from https://myaccount.google.com/apppasswords",
+      "required": true,
+      "sensitive": true
+    },
+    "imap_host": {
+      "type": "string",
+      "title": "IMAP Host",
+      "description": "IMAP server hostname (e.g. imap.gmail.com, outlook.office365.com, imap.fastmail.com)",
+      "required": true
+    },
+    "smtp_host": {
+      "type": "string",
+      "title": "SMTP Host",
+      "description": "SMTP server hostname (e.g. smtp.gmail.com, smtp.office365.com, smtp.fastmail.com)",
+      "required": true
+    },
+    "imap_security": {
+      "type": "string",
+      "title": "IMAP Security",
+      "description": "IMAP connection security: ssl (port 993), starttls (port 143), or none",
+      "default": "ssl"
+    },
+    "smtp_security": {
+      "type": "string",
+      "title": "SMTP Security",
+      "description": "SMTP connection security: ssl (port 465), starttls (port 587), or none (port 25)",
+      "default": "ssl"
+    },
+    "imap_port": {
+      "type": "string",
+      "title": "IMAP Port",
+      "description": "Custom IMAP port (leave empty for default based on security mode)",
+      "default": ""
+    },
+    "smtp_port": {
+      "type": "string",
+      "title": "SMTP Port",
+      "description": "Custom SMTP port (leave empty for default based on security mode)",
+      "default": ""
+    },
+    "email_username": {
+      "type": "string",
+      "title": "Username (if different from email)",
+      "description": "IMAP/SMTP login username, if different from your email address. Leave empty to use the email address.",
+      "default": ""
+    },
+    "ssl_verify": {
+      "type": "string",
+      "title": "Verify SSL Certificates",
+      "description": "Set to 'false' to skip TLS certificate verification (not recommended)",
+      "default": "true"
+    }
+  },
+  "tools": [
+    {
+      "name": "list_mailboxes",
+      "description": "List available mailboxes/folders (INBOX, Sent, Drafts, Archive, Trash, etc.)"
+    },
+    {
+      "name": "list_emails",
+      "description": "List emails in a mailbox with pagination, newest first"
+    },
+    {
+      "name": "fetch_email",
+      "description": "Fetch a single email by UID with full body and attachment info"
+    },
+    {
+      "name": "search_emails",
+      "description": "Search emails by sender, recipient, subject, body, date range, or read/unread status"
+    },
+    {
+      "name": "send_email",
+      "description": "Compose and send an email via SMTP with support for CC, BCC, reply-to, and HTML"
+    },
+    {
+      "name": "move_email",
+      "description": "Move an email to another folder (e.g. Archive, Trash, Junk)"
+    },
+    {
+      "name": "delete_email",
+      "description": "Permanently delete an email"
+    }
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "win32"]
+  }
+}

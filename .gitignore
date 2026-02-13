@@ -82,6 +82,12 @@ out
 .nuxt
 dist
 
+# MCPB build output
+server/
+
+# MCPB packages
+*.mcpb
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js

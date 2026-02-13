@@ -3,16 +3,17 @@
   "version": "0.1.1",
   "description": "Email MCP server with IMAP and SMTP support",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "server/index.js",
   "bin": {
-    "email-mcp": "dist/index.js"
+    "email-mcp": "server/index.js"
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "start": "node dist/index.js",
+    "start": "node server/index.js",
     "lint": "eslint src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:mcpb": "tsup && mcpb pack"
   },
   "keywords": ["mcp", "email", "imap", "smtp"],
   "license": "MIT",
