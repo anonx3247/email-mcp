@@ -73,6 +73,20 @@ interface MailboxInfo {
   specialUse?: string;
 }
 
+export async function appendToMailbox(
+  mailbox: string,
+  raw: Buffer,
+  flags: string[] = ["\\Seen"]
+): Promise<void> {
+  const client = createClient();
+  try {
+    await client.connect();
+    await client.append(mailbox, raw, flags);
+  } finally {
+    await client.logout().catch(() => {});
+  }
+}
+
 export async function listMailboxes(): Promise<MailboxInfo[]> {
   const client = createClient();
   try {
