@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
+import MailComposer from "nodemailer/lib/mail-composer/index.js";
 import { appendToMailbox } from "./imap.js";
 
 type SecurityMode = "ssl" | "starttls" | "none";
@@ -49,38 +50,7 @@ interface SendEmailResult {
   accepted: string[];
   rejected: string[];
   savedToSent: boolean;
-}
-
-interface RawMessageOptions {
-  from: string;
-  to: string;
-  cc?: string;
-  subject: string;
-  body: string;
-  isHtml: boolean;
-  messageId: string;
-  date: Date;
-}
-
-function buildRawMessage(opts: RawMessageOptions): Buffer {
-  const contentType = opts.isHtml
-    ? "text/html; charset=utf-8"
-    : "text/plain; charset=utf-8";
-
-  const lines: string[] = [
-    `From: ${opts.from}`,
-    `To: ${opts.to}`,
-    ...(opts.cc ? [`Cc: ${opts.cc}`] : []),
-    `Subject: ${opts.subject}`,
-    `Date: ${opts.date.toUTCString()}`,
-    `Message-ID: ${opts.messageId}`,
-    `MIME-Version: 1.0`,
-    `Content-Type: ${contentType}`,
-    ``,
-    opts.body,
-  ];
-
-  return Buffer.from(lines.join("\r\n"), "utf-8");
+  savedToSentError?: string;
 }
 
 export async function sendEmail(
@@ -105,35 +75,39 @@ export async function sendEmail(
       : options.bcc
     : undefined;
 
+  const mailOptions = {
+    from,
+    to: toStr,
+    subject,
+    ...(options.isHtml ? { html: body } : { text: body }),
+    ...(ccStr ? { cc: ccStr } : {}),
+    ...(bccStr ? { bcc: bccStr } : {}),
+    ...(options.replyTo ? { replyTo: options.replyTo } : {}),
+  };
+
   try {
-    const info = await transporter.sendMail({
-      from,
-      to: toStr,
-      subject,
-      ...(options.isHtml ? { html: body } : { text: body }),
-      ...(ccStr ? { cc: ccStr } : {}),
-      ...(bccStr ? { bcc: bccStr } : {}),
-      ...(options.replyTo ? { replyTo: options.replyTo } : {}),
-    });
+    const info = await transporter.sendMail(mailOptions);
 
     const sentFolder = process.env["SENT_FOLDER"] ?? "Sent";
-    const raw = buildRawMessage({
-      from,
-      to: toStr,
-      cc: ccStr,
-      subject,
-      body,
-      isHtml: options.isHtml ?? false,
+
+    // Build a properly encoded RFC 2822 message using the actual Message-ID
+    // that was assigned during send. MailComposer handles non-ASCII encoding,
+    // BCC headers, and attachments correctly.
+    const raw = await new MailComposer({
+      ...mailOptions,
       messageId: info.messageId,
-      date: new Date(),
-    });
+    })
+      .compile()
+      .build();
 
     let savedToSent = false;
+    let savedToSentError: string | undefined;
     try {
       await appendToMailbox(sentFolder, raw);
       savedToSent = true;
-    } catch {
-      // Non-fatal: send succeeded even if Sent copy fails
+    } catch (e) {
+      savedToSentError = e instanceof Error ? e.message : String(e);
+      console.error(`[email-mcp] Failed to save to Sent folder: ${savedToSentError}`);
     }
 
     return {
@@ -141,6 +115,7 @@ export async function sendEmail(
       accepted: info.accepted as string[],
       rejected: info.rejected as string[],
       savedToSent,
+      ...(savedToSentError ? { savedToSentError } : {}),
     };
   } finally {
     transporter.close();
