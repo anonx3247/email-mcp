@@ -30,8 +30,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. `resolveAccount` returns an error listing all valid labels when given an unknown account name, and defaults to account 1 when `account` is undefined
 **Plans:** 2/2 plans complete
 Plans:
-- [ ] 01-01-PLAN.md — TDD build of src/accounts.ts (types, loadAccounts, resolveAccount) with vitest
-- [ ] 01-02-PLAN.md — Wire loadAccounts() into src/index.ts startup
+- [x] 01-01-PLAN.md — TDD build of src/accounts.ts (types, loadAccounts, resolveAccount) with vitest
+- [x] 01-02-PLAN.md — Wire loadAccounts() into src/index.ts startup
 
 ### Phase 2: Implementation
 **Goal**: All 8 MCP tools correctly route operations to the selected account; no `process.env` reads remain in `imap.ts` or `smtp.ts`; manifest updated for multi-account config
@@ -44,7 +44,11 @@ Plans:
   4. Calling any tool with an unknown `account` value returns an error that lists valid configured account labels
   5. All tool responses that return UIDs include the account label, so Claude can track which account owns each UID
   6. `manifest.json` and `mcp_config.env` expose optional account 2 and account 3 config fields; a server configured with only account 1 fields starts without errors
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 02-01-PLAN.md — Refactor imap.ts and smtp.ts to accept AccountConfig (domain layer parameterization)
+- [ ] 02-02-PLAN.md — Wire account routing into all 8 MCP tool handlers in index.ts
+- [ ] 02-03-PLAN.md — Migrate manifest.json to multi-account configuration
 
 ### Phase 3: Verification
 **Goal**: Integration tests confirm no cross-account contamination exists and all critical pitfalls from research are explicitly exercised
@@ -65,5 +69,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Account Config Foundation | 2/2 | Complete   | 2026-03-28 |
-| 2. Implementation | 0/TBD | Not started | - |
+| 2. Implementation | 0/3 | Not started | - |
 | 3. Verification | 0/TBD | Not started | - |
