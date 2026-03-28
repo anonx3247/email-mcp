@@ -3,43 +3,17 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { listMailboxes, listEmails, fetchEmail, searchEmails, moveEmail, deleteEmail, markEmail } from "./imap.js";
 import { sendEmail } from "./smtp.js";
+import { loadAccounts } from "./accounts.js";
 
-// Validate required env vars
-const emailAddress = process.env["EMAIL_ADDRESS"];
-const imapHost = process.env["IMAP_HOST"];
-const smtpHost = process.env["SMTP_HOST"];
-const imapSecurity = process.env["IMAP_SECURITY"] ?? "ssl";
-const smtpSecurity = process.env["SMTP_SECURITY"] ?? "ssl";
-const emailPassword = process.env["EMAIL_PASSWORD"];
+// Load and validate all account configs (exits on error)
+const accounts = loadAccounts();
 
-if (!emailAddress) {
-  console.error("EMAIL_ADDRESS is required");
-  process.exit(1);
+console.error(`email-mcp starting (${accounts.length} account${accounts.length > 1 ? "s" : ""})`);
+for (const acct of accounts) {
+  console.error(`  [${acct.label}] ${acct.emailAddress}`);
+  console.error(`    IMAP: ${acct.imapHost}:${acct.imapPort} (${acct.imapSecurity})`);
+  console.error(`    SMTP: ${acct.smtpHost}:${acct.smtpPort} (${acct.smtpSecurity})`);
 }
-if (!imapHost) {
-  console.error("IMAP_HOST is required");
-  process.exit(1);
-}
-if (!smtpHost) {
-  console.error("SMTP_HOST is required");
-  process.exit(1);
-}
-if (!emailPassword && imapSecurity !== "none") {
-  console.error("EMAIL_PASSWORD is required when IMAP_SECURITY is not 'none'");
-  process.exit(1);
-}
-if (!emailPassword && smtpSecurity !== "none") {
-  console.error("EMAIL_PASSWORD is required when SMTP_SECURITY is not 'none'");
-  process.exit(1);
-}
-
-const imapPort = process.env["IMAP_PORT"] ?? (imapSecurity === "ssl" ? "993" : "143");
-const smtpPort = process.env["SMTP_PORT"] ?? (smtpSecurity === "ssl" ? "465" : smtpSecurity === "starttls" ? "587" : "25");
-
-console.error(`email-mcp starting`);
-console.error(`  Email: ${emailAddress}`);
-console.error(`  IMAP: ${imapHost}:${imapPort} (${imapSecurity})`);
-console.error(`  SMTP: ${smtpHost}:${smtpPort} (${smtpSecurity})`);
 
 const server = new McpServer({
   name: "email-mcp",
