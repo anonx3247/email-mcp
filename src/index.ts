@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { listMailboxes, listEmails, fetchEmail, searchEmails, moveEmail, deleteEmail } from "./imap.js";
+import { listMailboxes, listEmails, fetchEmail, searchEmails, moveEmail, deleteEmail, markEmail } from "./imap.js";
 import { sendEmail } from "./smtp.js";
 
 // Validate required env vars
@@ -199,6 +199,27 @@ server.tool(
   async ({ mailbox, uid, destination }) => {
     try {
       const result = await moveEmail(mailbox, uid, destination);
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { isError: true, content: [{ type: "text", text: msg }] };
+    }
+  }
+);
+
+server.tool(
+  "mark_email",
+  "Mark an email as read or unread",
+  {
+    mailbox: z.string().default("INBOX").describe("Mailbox path"),
+    uid: z.number().int().describe("Email UID to mark"),
+    read: z.boolean().describe("True to mark as read, false to mark as unread"),
+  },
+  async ({ mailbox, uid, read }) => {
+    try {
+      const result = await markEmail(mailbox, uid, read);
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
