@@ -46,10 +46,10 @@ Plans:
   6. `manifest.json` and `mcp_config.env` expose optional account 2 and account 3 config fields; a server configured with only account 1 fields starts without errors
 **Plans:** 4/4 plans complete
 Plans:
-- [ ] 02-00-PLAN.md — Wave 0 test scaffold for index.ts routing behavior (ROUT-01, ROUT-02, ROUT-04, ROUT-05)
-- [ ] 02-01-PLAN.md — Refactor imap.ts and smtp.ts to accept AccountConfig (domain layer parameterization)
-- [ ] 02-02-PLAN.md — Wire account routing into all 8 MCP tool handlers in index.ts
-- [ ] 02-03-PLAN.md — Migrate manifest.json to multi-account configuration
+- [x] 02-00-PLAN.md — Wave 0 test scaffold for index.ts routing behavior (ROUT-01, ROUT-02, ROUT-04, ROUT-05)
+- [x] 02-01-PLAN.md — Refactor imap.ts and smtp.ts to accept AccountConfig (domain layer parameterization)
+- [x] 02-02-PLAN.md — Wire account routing into all 8 MCP tool handlers in index.ts
+- [x] 02-03-PLAN.md — Migrate manifest.json to multi-account configuration
 
 ### Phase 3: Verification
 **Goal**: Integration tests confirm no cross-account contamination exists and all critical pitfalls from research are explicitly exercised
@@ -60,7 +60,9 @@ Plans:
   2. Test: configure two accounts with different IMAP servers, run `list_emails` for each — each call hits the correct server
   3. Test: `send_email` from account 2 — sent message has account 2's `From:` address AND appears in account 2's Sent folder (not account 1's)
   4. Test: set `ACCOUNT_2_IMAP_HOST=""` (empty string from unfilled Claude Desktop field), call any tool with `account: 2` — server returns a clear "account 2 is not configured" error, does not attempt a DNS lookup
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 03-01-PLAN.md — Integration tests for all 4 success criteria (SC-1 through SC-4) in src/integration.test.ts
 
 ## Progress
 
@@ -71,4 +73,4 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Account Config Foundation | 2/2 | Complete   | 2026-03-28 |
 | 2. Implementation | 4/4 | Complete   | 2026-03-28 |
-| 3. Verification | 0/TBD | Not started | - |
+| 3. Verification | 0/1 | Not started | - |
