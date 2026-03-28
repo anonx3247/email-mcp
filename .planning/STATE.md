@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-28T06:49:38.442Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-03-28T07:25:22.152Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Claude can read, search, and send email across multiple accounts without switching MCP instances — just specify the account label.
-**Current focus:** Phase 01 — account-config-foundation
+**Current focus:** Phase 02 — implementation
 
 ## Current Position
 
-Phase: 01 (account-config-foundation) — EXECUTING
-Plan: 2 of 2
+Phase: 02 (implementation) — EXECUTING
+Plan: 1 of 4
 
 ## Performance Metrics
 
@@ -43,6 +43,8 @@ Plan: 2 of 2
 *Updated after each plan completion*
 | Phase 01 P01 | 3 | 2 tasks | 3 files |
 | Phase 01 P02 | 1 | 1 tasks | 1 files |
+| Phase 02 P00 | 3 | 1 tasks | 1 files |
+| Phase 02 P03 | 5 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -55,6 +57,9 @@ Plan: 2 of 2
 - [Phase 01]: password field not required in AccountConfig — empty string is valid, matches existing imap.ts/smtp.ts behavior
 - [Phase 01]: resolveAccount by number matches label 'accountN' pattern — e.g., 2 matches 'account2'
 - [Phase 01]: accounts const placed at module scope in index.ts so Phase 2 tool handlers can reference it without restructuring
+- [Phase 02]: account_1_sent_folder included in manifest for EXT-02 forward compatibility
+- [Phase 02]: Test resolveAccount directly rather than importing index.ts — avoids module-scope side effects (loadAccounts + McpServer creation)
+- [Phase 02]: index.test.ts tests pass immediately (not RED) — serve as behavioral spec that Plan 02-02 must satisfy when wiring handlers
 
 ### Pending Todos
 
@@ -68,6 +73,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T06:49:38.434Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-implementation/02-CONTEXT.md
+Last session: 2026-03-28T07:25:21.374Z
+Stopped at: Completed 02-03-PLAN.md
+Resume file: None
