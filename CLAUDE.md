@@ -54,3 +54,6 @@ All configuration via environment variables:
 - `fetch_email` - Fetch a single email by UID
 - `search_emails` - Search emails by criteria
 - `send_email` - Send an email via SMTP
+- `move_email` - Move an email to another mailbox/folder
+- `mark_email` - Mark an email as read or unread
+- `delete_email` - Permanently delete an email

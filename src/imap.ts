@@ -419,3 +419,25 @@ export async function deleteEmail(
     await client.logout().catch(() => {});
   }
 }
+
+export async function markEmail(
+  mailbox: string,
+  uid: number,
+  read: boolean
+): Promise<{ uid: number; mailbox: string; read: boolean }> {
+  const client = createClient();
+  try {
+    await client.connect();
+    await client.mailboxOpen(mailbox);
+
+    if (read) {
+      await client.messageFlagsAdd(String(uid), ["\\Seen"], { uid: true });
+    } else {
+      await client.messageFlagsRemove(String(uid), ["\\Seen"], { uid: true });
+    }
+
+    return { uid, mailbox, read };
+  } finally {
+    await client.logout().catch(() => {});
+  }
+}
