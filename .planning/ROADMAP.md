@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Server starts with `ACCOUNT_1_*` and `ACCOUNT_2_*` and produces two distinct `AccountConfig` entries in the loaded array
   4. Server refuses to start if account 1 required fields are missing, printing a clear error naming which field is absent
   5. `resolveAccount` returns an error listing all valid labels when given an unknown account name, and defaults to account 1 when `account` is undefined
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 01-01-PLAN.md — TDD build of src/accounts.ts (types, loadAccounts, resolveAccount) with vitest
 - [ ] 01-02-PLAN.md — Wire loadAccounts() into src/index.ts startup
@@ -64,6 +64,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Account Config Foundation | 0/2 | Not started | - |
+| 1. Account Config Foundation | 1/2 | In Progress|  |
 | 2. Implementation | 0/TBD | Not started | - |
 | 3. Verification | 0/TBD | Not started | - |

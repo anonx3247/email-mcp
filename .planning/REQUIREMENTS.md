@@ -7,10 +7,10 @@
 
 ### Account Configuration
 
-- [ ] **CONF-01**: User can configure up to 3 accounts via indexed env vars (`ACCOUNT_1_*`, `ACCOUNT_2_*`, `ACCOUNT_3_*`)
-- [ ] **CONF-02**: Each account has a label field — defaults to "account1/2/3" if omitted
-- [ ] **CONF-03**: Accounts 2 and 3 are optional — server starts with just account 1
-- [ ] **CONF-04**: Existing single-account env vars (`EMAIL_ADDRESS`, `IMAP_HOST`, etc.) continue working as account 1 (backward compat)
+- [x] **CONF-01**: User can configure up to 3 accounts via indexed env vars (`ACCOUNT_1_*`, `ACCOUNT_2_*`, `ACCOUNT_3_*`)
+- [x] **CONF-02**: Each account has a label field — defaults to "account1/2/3" if omitted
+- [x] **CONF-03**: Accounts 2 and 3 are optional — server starts with just account 1
+- [x] **CONF-04**: Existing single-account env vars (`EMAIL_ADDRESS`, `IMAP_HOST`, etc.) continue working as account 1 (backward compat)
 
 ### Account Routing
 
@@ -45,10 +45,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | Phase 1 | Pending |
-| CONF-02 | Phase 1 | Pending |
-| CONF-03 | Phase 1 | Pending |
-| CONF-04 | Phase 1 | Pending |
+| CONF-01 | Phase 1 | Complete |
+| CONF-02 | Phase 1 | Complete |
+| CONF-03 | Phase 1 | Complete |
+| CONF-04 | Phase 1 | Complete |
 | ROUT-01 | Phase 2 | Pending |
 | ROUT-02 | Phase 2 | Pending |
 | ROUT-03 | Phase 2 | Pending |
