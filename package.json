@@ -13,9 +13,15 @@
     "start": "node server/index.js",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "build:mcpb": "tsup && mcpb pack"
+    "build:mcpb": "tsup && mcpb pack",
+    "test": "vitest run"
   },
-  "keywords": ["mcp", "email", "imap", "smtp"],
+  "keywords": [
+    "mcp",
+    "email",
+    "imap",
+    "smtp"
+  ],
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
@@ -29,6 +35,7 @@
     "@typescript-eslint/parser": "^8.32.1",
     "eslint": "^9.27.0",
     "tsup": "^8.4.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.2"
   }
 }
