@@ -16,7 +16,7 @@
 
 - [x] **ROUT-01**: All 8 tools accept an optional `account` parameter (label string or number 1–3)
 - [x] **ROUT-02**: When `account` is omitted, tools default to account 1
-- [ ] **ROUT-03**: Account resolution is case-insensitive exact match on label
+- [x] **ROUT-03**: Account resolution is case-insensitive exact match on label
 - [x] **ROUT-04**: Unknown `account` value returns an error listing valid account labels
 - [x] **ROUT-05**: Tool responses include the account label so Claude can track which account owns a UID
 
@@ -51,7 +51,7 @@
 | CONF-04 | Phase 1 | Complete |
 | ROUT-01 | Phase 2 | Complete |
 | ROUT-02 | Phase 2 | Complete |
-| ROUT-03 | Phase 2 | Pending |
+| ROUT-03 | Phase 2 | Complete |
 | ROUT-04 | Phase 2 | Complete |
 | ROUT-05 | Phase 2 | Complete |
 | MFST-01 | Phase 2 | Complete |

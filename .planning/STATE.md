@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-28T07:26:41.881Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-28T07:30:15.152Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 02 (implementation) — EXECUTING
-Plan: 1 of 4
+Plan: 3 of 4
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Plan: 1 of 4
 | Phase 02 P00 | 3 | 1 tasks | 1 files |
 | Phase 02 P03 | 5 | 1 tasks | 1 files |
 | Phase 02 P01 | 131 | 2 tasks | 4 files |
+| Phase 02 P02 | 2 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,8 @@ Plan: 1 of 4
 - [Phase 02]: index.test.ts tests pass immediately (not RED) — serve as behavioral spec that Plan 02-02 must satisfy when wiring handlers
 - [Phase 02]: imapConfigFromAccount exported @internal to enable unit testing without public API exposure
 - [Phase 02]: smtpConfigFromAccount exported publicly as a utility — no barrel file prevents this
+- [Phase 02]: list_mailboxes uses explicit { account, mailboxes } shape — spreading MailboxInfo[] array produces numeric index keys
+- [Phase 02]: search_emails uses { account, emails: result } shape — result is EmailSummary[] array, not spread
 
 ### Pending Todos
 
@@ -76,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T07:26:41.878Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-28T07:30:15.149Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
