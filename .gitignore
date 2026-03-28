@@ -85,8 +85,6 @@ dist
 # MCPB build output
 server/
 
-# MCPB packages
-*.mcpb
 
 # Gatsby files
 .cache/
