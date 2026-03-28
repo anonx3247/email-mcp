@@ -12,17 +12,17 @@ Claude can read, search, and send email across multiple accounts without switchi
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] User can configure 1–3 accounts via manifest user_config (indexed fields: account_1_*, account_2_*, account_3_*) — Validated in Phase 01 & 02
+- [x] Each account has a required label field (free text, e.g. "personal", "pro", "consultancy") — Validated in Phase 01
+- [x] All 8 tools accept an optional `account` parameter (label string or account number 1–3) — Validated in Phase 02
+- [x] When `account` param is omitted, tools default to account 1 — Validated in Phase 02
+- [x] Account 2 and 3 config fields are optional — server starts with just account 1 — Validated in Phase 01
+- [x] Config fields for accounts 2 and 3 mirror account 1 fields (email, password, imap_host, smtp_host, security modes, ports, username, ssl_verify) — Validated in Phase 01
+- [x] Manifest user_config and mcp_config.env updated to support indexed env vars — Validated in Phase 02
 
 ### Active
 
-- [ ] User can configure 1–3 accounts via manifest user_config (indexed fields: account_1_*, account_2_*, account_3_*)
-- [ ] Each account has a required label field (free text, e.g. "personal", "pro", "consultancy")
-- [ ] All 8 tools accept an optional `account` parameter (label string or account number 1–3)
-- [ ] When `account` param is omitted, tools default to account 1
-- [ ] Account 2 and 3 config fields are optional — server starts with just account 1
-- [ ] Config fields for accounts 2 and 3 mirror account 1 fields (email, password, imap_host, smtp_host, security modes, ports, username, ssl_verify)
-- [ ] Manifest user_config and mcp_config.env updated to support indexed env vars
+(All requirements validated — see above)
 
 ### Out of Scope
 
@@ -49,9 +49,9 @@ Claude can read, search, and send email across multiple accounts without switchi
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Indexed env vars (ACCOUNT_1_*, ACCOUNT_2_*) | Matches existing manifest pattern, no new config file format | — Pending |
-| Optional account param defaulting to account 1 | Seamless for single-account users upgrading | — Pending |
-| 3-account hard cap | Covers stated use case (personal/pro/consultancy), avoids dynamic config complexity | — Pending |
+| Indexed env vars (ACCOUNT_1_*, ACCOUNT_2_*) | Matches existing manifest pattern, no new config file format | Implemented — loadIndexedAccount() in accounts.ts |
+| Optional account param defaulting to account 1 | Seamless for single-account users upgrading | Implemented — resolveAccount() returns accounts[0] when param is undefined |
+| 3-account hard cap | Covers stated use case (personal/pro/consultancy), avoids dynamic config complexity | Implemented — manifest has 3-account slots, loadAccounts() loop covers [2,3] |
 
 ## Current Milestone: v1.0 Multi-Account Support
 
@@ -65,4 +65,6 @@ Claude can read, search, and send email across multiple accounts without switchi
 - Updated manifest `user_config` and `mcp_config.env`
 
 ---
-*Last updated: 2026-03-28 after milestone v1.0 started*
+**Current state:** Phase 02 complete — all routing requirements implemented and verified. 45 tests passing, TypeScript clean.
+
+*Last updated: 2026-03-28 after Phase 02 implementation complete*
