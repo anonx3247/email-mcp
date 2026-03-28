@@ -124,6 +124,10 @@
       "description": "Move an email to another folder (e.g. Archive, Trash, Junk)"
     },
     {
+      "name": "mark_email",
+      "description": "Mark an email as read or unread"
+    },
+    {
       "name": "delete_email",
       "description": "Permanently delete an email"
     }
