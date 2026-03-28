@@ -39,6 +39,7 @@ All configuration via environment variables:
 | `SMTP_PORT` | SMTP port | 465 |
 | `SMTP_SECURITY` | `ssl`, `starttls`, or `none` | ssl |
 | `SSL_VERIFY` | Verify TLS certificates | true |
+| `SENT_FOLDER` | Mailbox path for saving sent emails | Sent |
 
 ## TypeScript Conventions
 

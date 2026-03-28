@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
+import { appendToMailbox } from "./imap.js";
 
 type SecurityMode = "ssl" | "starttls" | "none";
 
@@ -47,6 +48,39 @@ interface SendEmailResult {
   messageId: string;
   accepted: string[];
   rejected: string[];
+  savedToSent: boolean;
+}
+
+interface RawMessageOptions {
+  from: string;
+  to: string;
+  cc?: string;
+  subject: string;
+  body: string;
+  isHtml: boolean;
+  messageId: string;
+  date: Date;
+}
+
+function buildRawMessage(opts: RawMessageOptions): Buffer {
+  const contentType = opts.isHtml
+    ? "text/html; charset=utf-8"
+    : "text/plain; charset=utf-8";
+
+  const lines: string[] = [
+    `From: ${opts.from}`,
+    `To: ${opts.to}`,
+    ...(opts.cc ? [`Cc: ${opts.cc}`] : []),
+    `Subject: ${opts.subject}`,
+    `Date: ${opts.date.toUTCString()}`,
+    `Message-ID: ${opts.messageId}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: ${contentType}`,
+    ``,
+    opts.body,
+  ];
+
+  return Buffer.from(lines.join("\r\n"), "utf-8");
 }
 
 export async function sendEmail(
@@ -59,29 +93,54 @@ export async function sendEmail(
   const from = process.env["EMAIL_ADDRESS"];
   if (!from) throw new Error("EMAIL_ADDRESS is required");
 
+  const toStr = Array.isArray(to) ? to.join(", ") : to;
+  const ccStr = options.cc
+    ? Array.isArray(options.cc)
+      ? options.cc.join(", ")
+      : options.cc
+    : undefined;
+  const bccStr = options.bcc
+    ? Array.isArray(options.bcc)
+      ? options.bcc.join(", ")
+      : options.bcc
+    : undefined;
+
   try {
     const info = await transporter.sendMail({
       from,
-      to: Array.isArray(to) ? to.join(", ") : to,
+      to: toStr,
       subject,
       ...(options.isHtml ? { html: body } : { text: body }),
-      ...(options.cc
-        ? { cc: Array.isArray(options.cc) ? options.cc.join(", ") : options.cc }
-        : {}),
-      ...(options.bcc
-        ? {
-            bcc: Array.isArray(options.bcc)
-              ? options.bcc.join(", ")
-              : options.bcc,
-          }
-        : {}),
+      ...(ccStr ? { cc: ccStr } : {}),
+      ...(bccStr ? { bcc: bccStr } : {}),
       ...(options.replyTo ? { replyTo: options.replyTo } : {}),
     });
+
+    const sentFolder = process.env["SENT_FOLDER"] ?? "Sent";
+    const raw = buildRawMessage({
+      from,
+      to: toStr,
+      cc: ccStr,
+      subject,
+      body,
+      isHtml: options.isHtml ?? false,
+      messageId: info.messageId,
+      date: new Date(),
+    });
+
+    let savedToSent = false;
+    try {
+      await appendToMailbox(sentFolder, raw);
+      savedToSent = true;
+    } catch {
+      // Non-fatal: send succeeded even if Sent copy fails
+    }
 
     return {
       messageId: info.messageId,
       accepted: info.accepted as string[],
       rejected: info.rejected as string[],
+      savedToSent,
     };
   } finally {
     transporter.close();
