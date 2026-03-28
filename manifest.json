@@ -22,6 +22,7 @@
       "command": "node",
       "args": ["${__dirname}/server/index.js"],
       "env": {
+        "ACCOUNT_1_LABEL": "${user_config.account_1_label}",
         "ACCOUNT_1_EMAIL_ADDRESS": "${user_config.account_1_email_address}",
         "ACCOUNT_1_EMAIL_PASSWORD": "${user_config.account_1_email_password}",
         "ACCOUNT_1_IMAP_HOST": "${user_config.account_1_imap_host}",
@@ -61,6 +62,13 @@
     }
   },
   "user_config": {
+    "account_1_label": {
+      "type": "string",
+      "title": "Account 1 — Label",
+      "description": "Custom label for account 1 (e.g. 'personal', 'work'). Defaults to 'account1' if empty.",
+      "required": false,
+      "default": ""
+    },
     "account_1_email_address": {
       "type": "string",
       "title": "Account 1 — Email Address",

@@ -64,7 +64,7 @@ export async function appendToMailbox(
   const client = createClient(account);
   try {
     await client.connect();
-    await client.append(mailbox, raw, flags);
+    await client.append(mailbox.split("/"), raw, flags);
   } finally {
     await client.logout().catch(() => {});
   }
