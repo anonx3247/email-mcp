@@ -44,8 +44,9 @@ Plans:
   4. Calling any tool with an unknown `account` value returns an error that lists valid configured account labels
   5. All tool responses that return UIDs include the account label, so Claude can track which account owns each UID
   6. `manifest.json` and `mcp_config.env` expose optional account 2 and account 3 config fields; a server configured with only account 1 fields starts without errors
-**Plans:** 3 plans
+**Plans:** 4 plans
 Plans:
+- [ ] 02-00-PLAN.md — Wave 0 test scaffold for index.ts routing behavior (ROUT-01, ROUT-02, ROUT-04, ROUT-05)
 - [ ] 02-01-PLAN.md — Refactor imap.ts and smtp.ts to accept AccountConfig (domain layer parameterization)
 - [ ] 02-02-PLAN.md — Wire account routing into all 8 MCP tool handlers in index.ts
 - [ ] 02-03-PLAN.md — Migrate manifest.json to multi-account configuration
@@ -69,5 +70,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Account Config Foundation | 2/2 | Complete   | 2026-03-28 |
-| 2. Implementation | 0/3 | Not started | - |
+| 2. Implementation | 0/4 | Not started | - |
 | 3. Verification | 0/TBD | Not started | - |
