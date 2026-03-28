@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Account Config Foundation** - Build `src/accounts.ts` with types, loader, and resolver — everything else depends on this (completed 2026-03-28)
 - [x] **Phase 2: Implementation** - Refactor domain layer and wire account routing into all 8 tools and the manifest (completed 2026-03-28)
-- [ ] **Phase 3: Verification** - Integration tests confirm correct account routing with no cross-account contamination
+- [x] **Phase 3: Verification** - Integration tests confirm correct account routing with no cross-account contamination (completed 2026-03-28)
 
 ## Phase Details
 
@@ -60,7 +60,7 @@ Plans:
   2. Test: configure two accounts with different IMAP servers, run `list_emails` for each — each call hits the correct server
   3. Test: `send_email` from account 2 — sent message has account 2's `From:` address AND appears in account 2's Sent folder (not account 1's)
   4. Test: set `ACCOUNT_2_IMAP_HOST=""` (empty string from unfilled Claude Desktop field), call any tool with `account: 2` — server returns a clear "account 2 is not configured" error, does not attempt a DNS lookup
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 03-01-PLAN.md — Integration tests for all 4 success criteria (SC-1 through SC-4) in src/integration.test.ts
 
@@ -73,4 +73,4 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Account Config Foundation | 2/2 | Complete   | 2026-03-28 |
 | 2. Implementation | 4/4 | Complete   | 2026-03-28 |
-| 3. Verification | 0/1 | Not started | - |
+| 3. Verification | 1/1 | Complete   | 2026-03-28 |
