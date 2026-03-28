@@ -91,8 +91,8 @@ describe("ROUT-04: unknown account returns error with valid labels", () => {
     };
 
     expect(errorResponse.isError).toBe(true);
-    expect(errorResponse.content[0].text).toContain("personal");
-    expect(errorResponse.content[0].text).toContain("work");
+    expect(errorResponse.content[0]!.text).toContain("personal");
+    expect(errorResponse.content[0]!.text).toContain("work");
   });
 });
 

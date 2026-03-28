@@ -3,7 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { listMailboxes, listEmails, fetchEmail, searchEmails, moveEmail, deleteEmail, markEmail } from "./imap.js";
 import { sendEmail } from "./smtp.js";
-import { loadAccounts } from "./accounts.js";
+import { loadAccounts, resolveAccount } from "./accounts.js";
 
 // Load and validate all account configs (exits on error)
 const accounts = loadAccounts();
@@ -23,12 +23,15 @@ const server = new McpServer({
 server.tool(
   "list_mailboxes",
   "List available mailboxes/folders",
-  {},
-  async () => {
+  {
+    account: z.string().optional().describe('Account label (e.g. "personal", "pro"). Defaults to account 1 if omitted.'),
+  },
+  async ({ account }) => {
     try {
-      const mailboxes = await listMailboxes();
+      const acct = resolveAccount(accounts, account);
+      const mailboxes = await listMailboxes(acct);
       return {
-        content: [{ type: "text", text: JSON.stringify(mailboxes, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify({ account: acct.label, mailboxes }, null, 2) }],
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -41,6 +44,7 @@ server.tool(
   "list_emails",
   "List emails in a mailbox with pagination (newest first)",
   {
+    account: z.string().optional().describe('Account label (e.g. "personal", "pro"). Defaults to account 1 if omitted.'),
     mailbox: z.string().default("INBOX").describe("Mailbox path"),
     page: z.number().int().min(1).default(1).describe("Page number"),
     pageSize: z
@@ -51,11 +55,12 @@ server.tool(
       .default(20)
       .describe("Emails per page"),
   },
-  async ({ mailbox, page, pageSize }) => {
+  async ({ account, mailbox, page, pageSize }) => {
     try {
-      const result = await listEmails(mailbox, page, pageSize);
+      const acct = resolveAccount(accounts, account);
+      const result = await listEmails(acct, mailbox, page, pageSize);
       return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify({ account: acct.label, ...result }, null, 2) }],
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -68,14 +73,16 @@ server.tool(
   "fetch_email",
   "Fetch a single email by UID with full body and attachment info",
   {
+    account: z.string().optional().describe('Account label (e.g. "personal", "pro"). Defaults to account 1 if omitted.'),
     mailbox: z.string().default("INBOX").describe("Mailbox path"),
     uid: z.number().int().describe("Email UID"),
   },
-  async ({ mailbox, uid }) => {
+  async ({ account, mailbox, uid }) => {
     try {
-      const result = await fetchEmail(mailbox, uid);
+      const acct = resolveAccount(accounts, account);
+      const result = await fetchEmail(acct, mailbox, uid);
       return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify({ account: acct.label, ...result }, null, 2) }],
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -88,6 +95,7 @@ server.tool(
   "search_emails",
   "Search emails by various criteria",
   {
+    account: z.string().optional().describe('Account label (e.g. "personal", "pro"). Defaults to account 1 if omitted.'),
     mailbox: z.string().default("INBOX").describe("Mailbox path"),
     from: z.string().optional().describe("From address to match"),
     to: z.string().optional().describe("To address to match"),
@@ -104,15 +112,17 @@ server.tool(
       .default(50)
       .describe("Max results"),
   },
-  async ({ mailbox, from, to, subject, since, before, body, seen, limit }) => {
+  async ({ account, mailbox, from, to, subject, since, before, body, seen, limit }) => {
     try {
+      const acct = resolveAccount(accounts, account);
       const result = await searchEmails(
+        acct,
         mailbox,
         { from, to, subject, since, before, body, seen },
         limit
       );
       return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify({ account: acct.label, emails: result }, null, 2) }],
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -125,6 +135,7 @@ server.tool(
   "send_email",
   "Send an email via SMTP",
   {
+    account: z.string().optional().describe('Account label (e.g. "personal", "pro"). Defaults to account 1 if omitted.'),
     to: z
       .union([z.string(), z.array(z.string())])
       .describe("Recipient(s)"),
@@ -144,16 +155,12 @@ server.tool(
       .default(false)
       .describe("Whether body is HTML"),
   },
-  async ({ to, subject, body, cc, bcc, replyTo, isHtml }) => {
+  async ({ account, to, subject, body, cc, bcc, replyTo, isHtml }) => {
     try {
-      const result = await sendEmail(to, subject, body, {
-        cc,
-        bcc,
-        replyTo,
-        isHtml,
-      });
+      const acct = resolveAccount(accounts, account);
+      const result = await sendEmail(acct, to, subject, body, { cc, bcc, replyTo, isHtml });
       return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify({ account: acct.label, ...result }, null, 2) }],
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -166,15 +173,17 @@ server.tool(
   "move_email",
   "Move an email to another mailbox/folder (e.g. archive, junk, sent)",
   {
+    account: z.string().optional().describe('Account label (e.g. "personal", "pro"). Defaults to account 1 if omitted.'),
     mailbox: z.string().default("INBOX").describe("Source mailbox path"),
     uid: z.number().int().describe("Email UID to move"),
     destination: z.string().describe("Destination mailbox path (e.g. Archive, Junk, Trash)"),
   },
-  async ({ mailbox, uid, destination }) => {
+  async ({ account, mailbox, uid, destination }) => {
     try {
-      const result = await moveEmail(mailbox, uid, destination);
+      const acct = resolveAccount(accounts, account);
+      const result = await moveEmail(acct, mailbox, uid, destination);
       return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify({ account: acct.label, ...result }, null, 2) }],
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -187,15 +196,17 @@ server.tool(
   "mark_email",
   "Mark an email as read or unread",
   {
+    account: z.string().optional().describe('Account label (e.g. "personal", "pro"). Defaults to account 1 if omitted.'),
     mailbox: z.string().default("INBOX").describe("Mailbox path"),
     uid: z.number().int().describe("Email UID to mark"),
     read: z.boolean().describe("True to mark as read, false to mark as unread"),
   },
-  async ({ mailbox, uid, read }) => {
+  async ({ account, mailbox, uid, read }) => {
     try {
-      const result = await markEmail(mailbox, uid, read);
+      const acct = resolveAccount(accounts, account);
+      const result = await markEmail(acct, mailbox, uid, read);
       return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify({ account: acct.label, ...result }, null, 2) }],
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -208,14 +219,16 @@ server.tool(
   "delete_email",
   "Permanently delete an email (sets \\Deleted flag and expunges)",
   {
+    account: z.string().optional().describe('Account label (e.g. "personal", "pro"). Defaults to account 1 if omitted.'),
     mailbox: z.string().default("INBOX").describe("Mailbox path"),
     uid: z.number().int().describe("Email UID to delete"),
   },
-  async ({ mailbox, uid }) => {
+  async ({ account, mailbox, uid }) => {
     try {
-      const result = await deleteEmail(mailbox, uid);
+      const acct = resolveAccount(accounts, account);
+      const result = await deleteEmail(acct, mailbox, uid);
       return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        content: [{ type: "text", text: JSON.stringify({ account: acct.label, ...result }, null, 2) }],
       };
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
