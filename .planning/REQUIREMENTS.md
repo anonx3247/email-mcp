@@ -45,23 +45,23 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | — | Pending |
-| CONF-02 | — | Pending |
-| CONF-03 | — | Pending |
-| CONF-04 | — | Pending |
-| ROUT-01 | — | Pending |
-| ROUT-02 | — | Pending |
-| ROUT-03 | — | Pending |
-| ROUT-04 | — | Pending |
-| ROUT-05 | — | Pending |
-| MFST-01 | — | Pending |
-| MFST-02 | — | Pending |
+| CONF-01 | Phase 1 | Pending |
+| CONF-02 | Phase 1 | Pending |
+| CONF-03 | Phase 1 | Pending |
+| CONF-04 | Phase 1 | Pending |
+| ROUT-01 | Phase 2 | Pending |
+| ROUT-02 | Phase 2 | Pending |
+| ROUT-03 | Phase 2 | Pending |
+| ROUT-04 | Phase 2 | Pending |
+| ROUT-05 | Phase 2 | Pending |
+| MFST-01 | Phase 2 | Pending |
+| MFST-02 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️ (roadmap pending)
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after initial definition*
+*Last updated: 2026-03-28 — traceability populated after roadmap creation*

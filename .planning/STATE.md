@@ -2,35 +2,55 @@
 
 ## Project Reference
 
-**What**: Multi-account support for email-mcp — 1–3 accounts with labels, all 8 tools gain optional `account` param.
-**Core Value**: Claude can read/search/send across multiple email accounts in one MCP server instance.
+See: .planning/PROJECT.md (updated 2026-03-28)
+
+**Core value:** Claude can read, search, and send email across multiple accounts without switching MCP instances — just specify the account label.
+**Current focus:** Phase 1 — Account Config Foundation
 
 ## Current Position
 
-- **Phase**: Not started (defining requirements)
-- **Plan**: —
-- **Status**: Defining requirements for milestone v1.0
+Phase: 1 of 3 (Account Config Foundation)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-28 — Roadmap created
 
-## Progress
+Progress: [░░░░░░░░░░] 0%
 
-`[░░░░░░░░░░] 0%` — Pre-roadmap
+## Performance Metrics
 
-## Recent Decisions
+**Velocity:**
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: —
 
-- Indexed env vars (ACCOUNT_1_*, ACCOUNT_2_*) to match existing manifest pattern
-- Optional `account` param defaults to account 1 (backward compat)
-- 3-account hard cap
+**By Phase:**
 
-## Pending Todos
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
 
-(none captured)
+*Updated after each plan completion*
 
-## Blockers / Concerns
+## Accumulated Context
 
-(none)
+### Decisions
+
+- Indexed env vars (`ACCOUNT_1_*`) with legacy fallback — backward compat handled entirely in `accounts.ts`
+- 3-account hard cap — covers personal/pro/consultancy, avoids dynamic config complexity
+- Optional `account` param defaulting to account 1 — zero-change upgrade for single-account users
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+- Phase 2: `smtp.ts` line 63 reads `process.env["EMAIL_ADDRESS"]` directly for `from` — must become `account.emailAddress` (Pitfall 4)
+- Phase 2: `appendToMailbox` inside `sendEmail` must pass the same `AccountConfig` through (Pitfall 5)
+- Phase 2: Empty string env vars from Claude Desktop for unfilled optional fields — use `host.trim().length > 0`, not `!!host` or `??` (Pitfall 7)
 
 ## Session Continuity
 
 Last session: 2026-03-28
-Stopped at: Milestone v1.0 started — defining requirements
-Resume file: N/A
+Stopped at: Roadmap created, ready to plan Phase 1
+Resume file: None
