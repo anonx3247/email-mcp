@@ -64,8 +64,25 @@ export async function appendToMailbox(
   const client = createClient(account);
   try {
     await client.connect();
-    // imapflow accepts string[] and joins with the server's hierarchy delimiter,
-    // but its type definition only declares string — cast to satisfy TS.
+    // Pass the mailbox path as a string[] rather than a plain string.
+    //
+    // Why: IMAP servers use different hierarchy delimiters — "/" on Gmail,
+    // "." on Fastmail/Dovecot, etc. If we pass a raw string like "Sent/Work",
+    // imapflow sends it verbatim; on a "." server the folder won't be found.
+    //
+    // imapflow's internal normalizePath() (lib/tools.js) handles string[]
+    // specially: it joins the segments using the server's *actual* delimiter
+    // (discovered during the NAMESPACE handshake after connect()) and prepends
+    // the namespace prefix if required. This makes path resolution
+    // server-agnostic regardless of what separator the user typed.
+    //
+    // Source: node_modules/imapflow/lib/commands/append.js line 25
+    //   `destination = normalizePath(connection, destination)`
+    // Source: node_modules/imapflow/lib/tools.js lines 43-64
+    //   `if (Array.isArray(path)) { path = path.join(connection.namespace.delimiter) }`
+    //
+    // The TypeScript declaration (lib/imap-flow.d.ts) only exposes `string`
+    // because the array overload was never added to the types — hence the cast.
     await client.append(mailbox.split("/") as unknown as string, raw, flags);
   } finally {
     await client.logout().catch(() => {});
