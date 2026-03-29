@@ -142,6 +142,7 @@ describe("SC-4: empty/whitespace IMAP host triggers clear error", () => {
     vi.stubEnv("ACCOUNT_1_EMAIL_ADDRESS", "a@a.com");
     vi.stubEnv("ACCOUNT_1_IMAP_HOST", "imap.a.com");
     vi.stubEnv("ACCOUNT_1_SMTP_HOST", "smtp.a.com");
+    vi.stubEnv("ACCOUNT_1_EMAIL_PASSWORD", "pass1");
   }
 
   it("empty string ACCOUNT_2_IMAP_HOST exits with named error", () => {
@@ -149,6 +150,7 @@ describe("SC-4: empty/whitespace IMAP host triggers clear error", () => {
     setAccount1Indexed();
     vi.stubEnv("ACCOUNT_2_EMAIL_ADDRESS", "b@b.com");
     vi.stubEnv("ACCOUNT_2_IMAP_HOST", "");
+    vi.stubEnv("ACCOUNT_2_EMAIL_PASSWORD", "pass2");
 
     expect(() => loadAccounts()).toThrow("process.exit");
     expect(errorSpy).toHaveBeenCalledWith(
@@ -161,6 +163,7 @@ describe("SC-4: empty/whitespace IMAP host triggers clear error", () => {
     setAccount1Indexed();
     vi.stubEnv("ACCOUNT_2_EMAIL_ADDRESS", "b@b.com");
     vi.stubEnv("ACCOUNT_2_IMAP_HOST", "   ");
+    vi.stubEnv("ACCOUNT_2_EMAIL_PASSWORD", "pass2");
 
     expect(() => loadAccounts()).toThrow("process.exit");
     expect(errorSpy).toHaveBeenCalledWith(
@@ -173,6 +176,7 @@ describe("SC-4: empty/whitespace IMAP host triggers clear error", () => {
     setAccount1Indexed();
     vi.stubEnv("ACCOUNT_2_EMAIL_ADDRESS", "b@b.com");
     vi.stubEnv("ACCOUNT_2_IMAP_HOST", "imap.b.com");
+    vi.stubEnv("ACCOUNT_2_EMAIL_PASSWORD", "pass2");
     vi.stubEnv("ACCOUNT_2_SMTP_HOST", "");
 
     expect(() => loadAccounts()).toThrow("process.exit");

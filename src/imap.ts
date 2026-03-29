@@ -64,7 +64,9 @@ export async function appendToMailbox(
   const client = createClient(account);
   try {
     await client.connect();
-    await client.append(mailbox.split("/"), raw, flags);
+    // imapflow accepts string[] and joins with the server's hierarchy delimiter,
+    // but its type definition only declares string — cast to satisfy TS.
+    await client.append(mailbox.split("/") as unknown as string, raw, flags);
   } finally {
     await client.logout().catch(() => {});
   }

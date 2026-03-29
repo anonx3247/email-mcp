@@ -65,12 +65,6 @@ function loadIndexedAccount(n: number): AccountConfig {
   );
   const password = readStr(`ACCOUNT_${n}_EMAIL_PASSWORD`).trim();
 
-  const rawUsername = readStr(`ACCOUNT_${n}_EMAIL_USERNAME`);
-  const username = isPresent(rawUsername) ? rawUsername.trim() : emailAddress;
-
-  const rawLabel = readStr(`ACCOUNT_${n}_LABEL`);
-  const label = isPresent(rawLabel) ? rawLabel.trim() : `account${n}`;
-
   const imapSecurity = parseSecurityMode(
     readStr(`ACCOUNT_${n}_IMAP_SECURITY`),
     `ACCOUNT_${n}_IMAP_SECURITY`
@@ -79,6 +73,17 @@ function loadIndexedAccount(n: number): AccountConfig {
     readStr(`ACCOUNT_${n}_SMTP_SECURITY`),
     `ACCOUNT_${n}_SMTP_SECURITY`
   );
+
+  if (!isPresent(password) && (imapSecurity !== "none" || smtpSecurity !== "none")) {
+    console.error(`ACCOUNT_${n}_EMAIL_PASSWORD is required when security is not "none"`);
+    process.exit(1);
+  }
+
+  const rawUsername = readStr(`ACCOUNT_${n}_EMAIL_USERNAME`);
+  const username = isPresent(rawUsername) ? rawUsername.trim() : emailAddress;
+
+  const rawLabel = readStr(`ACCOUNT_${n}_LABEL`);
+  const label = isPresent(rawLabel) ? rawLabel.trim() : `account${n}`;
 
   const defaultImapPort = imapSecurity === "ssl" ? 993 : 143;
   const imapPort = parsePort(
@@ -179,7 +184,7 @@ export function resolveAccount(
 
   const match =
     typeof account === "number"
-      ? accounts.find((a) => a.label === `account${account}`)
+      ? accounts[account - 1]
       : accounts.find(
           (a) => a.label.toLowerCase() === account.toLowerCase()
         );
